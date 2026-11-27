@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:3d": "node scripts/generate-3d-assets.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.3",

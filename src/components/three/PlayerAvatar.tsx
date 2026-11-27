@@ -17,7 +17,7 @@ interface PlayerAvatarProps {
   glbFacingOffsetY?: number;
 }
 
-const AVATAR_TARGET_HEIGHT = 1.6;
+const AVATAR_TARGET_HEIGHT = 1.65;
 
 /**
  * High-quality GLB Human Avatar (1.6m auto-scaled, grounded at y=0, AnimationMixer Idle/Walk blending)

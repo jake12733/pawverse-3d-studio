@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { ParticleEffect, PetAction, PetConfig } from '../../types';
 import { AnimatedGLBModel, useGlbAvailable } from './AnimatedGLBModel';
 
-const DOG_TARGET_HEIGHT = 0.6;
+const DOG_TARGET_HEIGHT = 0.65;
 
 interface ProceduralPetProps {
   pet: PetConfig;

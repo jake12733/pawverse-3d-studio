@@ -150,7 +150,7 @@ export const useMetaverseStore = create<MetaverseStore>((set, get) => ({
     hat: 'none',
     eyewear: 'none',
     collar: 'led_collar',
-    customGlbUrl: './models/dog.glb',
+    customGlbUrl: './models/pet.glb',
     glbFacingOffsetY: 0
   },
   petAction: 'idle',

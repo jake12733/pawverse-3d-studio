@@ -139,14 +139,14 @@ function GLBInner({
   // Bind AnimationMixer via useAnimations
   const { actions, names } = useAnimations(animations, rootRef);
 
-  // Smart clip auto-detection (Mixamo, ReadyPlayerMe, Meshy, Tripo, Sketchfab naming)
+  // Smart clip auto-detection (Mixamo, ReadyPlayerMe, Meshy, Tripo, Khronos Fox, Sketchfab naming)
   const clipMap = useMemo(() => {
     const find = (re: RegExp) => names.find((n) => re.test(n)) || null;
     const walk = find(/walk|trot|stroll|locomotion|move/i);
     const run = find(/run|gallop|sprint|jog|fast/i);
-    const idle = find(/idle|stand|breath|rest|wait/i) || names.find((n) => n !== walk && n !== run) || null;
-    const jump = find(/jump|hop|leap|happy|bark|dance|wave/i);
-    const sit = find(/sit|lay|sleep|down/i);
+    const idle = find(/idle|stand|breath|rest|wait|survey/i) || names.find((n) => n !== walk && n !== run) || null;
+    const jump = find(/jump|hop|leap|happy|bark|dance|wave|agree/i);
+    const sit = find(/sit|lay|sleep|down|sad/i);
     return { idle, walk, run, jump, sit };
   }, [names]);
 
