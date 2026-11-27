@@ -1,8 +1,11 @@
-import React, { Component, Suspense, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, useGLTF } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { ParticleEffect, PetAction, PetConfig } from '../../types';
+import { AnimatedGLBModel, useGlbAvailable } from './AnimatedGLBModel';
+
+const DOG_TARGET_HEIGHT = 0.6;
 
 interface ProceduralPetProps {
   pet: PetConfig;
@@ -14,51 +17,6 @@ interface ProceduralPetProps {
   particles?: ParticleEffect;
   showHeartBadge?: boolean;
   onClick?: () => void;
-}
-
-class ModelErrorBoundary extends Component<
-  { fallback: React.ReactNode; children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { fallback: React.ReactNode; children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidUpdate(prevProps: { children: React.ReactNode }) {
-    if (prevProps.children !== this.props.children && this.state.hasError) {
-      this.setState({ hasError: false });
-    }
-  }
-  render() {
-    return this.state.hasError ? this.props.fallback : this.props.children;
-  }
-}
-
-function CustomGLBModel({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
-  const cloned = useMemo(() => {
-    const copy = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(copy);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const maxDim = Math.max(size.x, size.y, size.z, 0.001);
-    const scale = 1.4 / maxDim;
-    copy.scale.setScalar(scale);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-    copy.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
-    copy.traverse((obj) => {
-      if ((obj as THREE.Mesh).isMesh) {
-        obj.castShadow = true;
-        obj.receiveShadow = true;
-      }
-    });
-    return copy;
-  }, [scene]);
-  return <primitive object={cloned} />;
 }
 
 function PetParticles({ type }: { type: ParticleEffect }) {
@@ -483,19 +441,20 @@ export const ProceduralPet: React.FC<ProceduralPetProps> = ({
     </group>
   );
 
+  const hasGlb = useGlbAvailable(pet.customGlbUrl);
+  const labelHeightY = hasGlb ? DOG_TARGET_HEIGHT + 0.28 : 1.24;
+
   return (
     <group ref={rootRef} position={position} rotation={[0, rotationY, 0]} onClick={onClick}>
-      {/* Support drop-in external .GLB AI 3D models seamlessly */}
-      {pet.customGlbUrl ? (
-        <ModelErrorBoundary fallback={proceduralBody}>
-          <Suspense fallback={proceduralBody}>
-            <group ref={bodyRef} position={[0, 0, 0]}>
-              <CustomGLBModel url={pet.customGlbUrl} />
-              <group ref={headRef} />
-              <group ref={tailRef} />
-            </group>
-          </Suspense>
-        </ModelErrorBoundary>
+      {/* Automatically uses public/models/dog.glb (0.6m auto-scaled & animated) when present, falling back cleanly */}
+      {hasGlb && pet.customGlbUrl ? (
+        <AnimatedGLBModel
+          url={pet.customGlbUrl}
+          targetHeight={DOG_TARGET_HEIGHT}
+          motionState={action}
+          facingOffsetY={pet.glbFacingOffsetY ?? 0}
+          fallback={proceduralBody}
+        />
       ) : (
         proceduralBody
       )}
@@ -503,10 +462,10 @@ export const ProceduralPet: React.FC<ProceduralPetProps> = ({
       {/* Active Care/Reaction 3D Particles */}
       <PetParticles type={particles} />
 
-      {/* Unified Overhead Stack for Pet: Speech Bubble cleanly stacked ABOVE Pet Nameplate — zero overlap! */}
+      {/* Unified Overhead Stack for Pet: Height calibrated accurately for 0.6m GLB dog or procedural pet */}
       {(nicknameTag || speechText) && (
         <Html
-          position={[0, 1.24, 0]}
+          position={[0, labelHeightY, 0]}
           center
           zIndexRange={speechText ? [24, 15] : [8, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}

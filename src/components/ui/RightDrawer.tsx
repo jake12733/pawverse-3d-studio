@@ -51,11 +51,15 @@ export const RightDrawer: React.FC = () => {
     return false;
   };
 
-  const handleLocalGlbUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalGlbUpload = (target: 'avatar' | 'dog') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const blobUrl = URL.createObjectURL(file);
-    setCustomGlbUrl(blobUrl);
+    if (target === 'avatar') {
+      updatePlayer({ customGlbUrl: blobUrl });
+    } else {
+      setCustomGlbUrl(blobUrl);
+    }
   };
 
   return (
@@ -361,20 +365,73 @@ export const RightDrawer: React.FC = () => {
 
         {tab === 'glb' && (
           <div className="space-y-3">
-            <div className="p-3 rounded-xl bg-indigo-500/15 border border-indigo-400/30 text-[11.5px] text-indigo-800 dark:text-indigo-200 leading-relaxed">
-              <strong>Meshy AI / TripoSR / HunYuan3D</strong>에서 생성한 <code>.glb</code> 3D 모델을 즉시 불러와 기본 절차적 반려동물과 교체할 수 있습니다.
+            <div className="p-3 rounded-xl bg-indigo-500/15 border border-indigo-400/30 text-[11px] text-indigo-800 dark:text-indigo-200 leading-relaxed">
+              <code>public/models/avatar.glb</code>(1.6m)와 <code>public/models/dog.glb</code>(0.6m)를 자동 감지해 <strong>Box3 자동 보정 · 바닥 접지(y=0) · AnimationMixer 블렌딩</strong>으로 교체합니다.
             </div>
 
-            <label className="flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl border-2 border-dashed border-rose-400/60 bg-rose-500/5 hover:bg-rose-500/10 cursor-pointer transition">
-              <Upload className="w-5 h-5 text-rose-500" />
-              <span className="text-xs font-extrabold text-slate-800 dark:text-white">로컬 .GLB 파일 바로 테스트</span>
-              <span className="text-[10.5px] text-slate-500">클릭하여 .glb / .gltf 선택</span>
-              <input type="file" accept=".glb,.gltf" onChange={handleLocalGlbUpload} className="hidden" />
-            </label>
+            {/* Avatar GLB Slot */}
+            <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-2">
+              <div className="flex items-center justify-between text-xs font-extrabold text-slate-900 dark:text-white">
+                <span>👤 인간 아바타 (avatar.glb · 1.6m)</span>
+              </div>
+              <label className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-dashed border-rose-400/70 bg-rose-500/5 hover:bg-rose-500/15 cursor-pointer text-[11px] font-bold text-rose-500">
+                <Upload className="w-3.5 h-3.5" />
+                <span>avatar.glb 파일 바로 불러오기</span>
+                <input type="file" accept=".glb,.gltf" onChange={handleLocalGlbUpload('avatar')} className="hidden" />
+              </label>
+              <div className="flex items-center justify-between gap-1 text-[10.5px]">
+                <span className="text-slate-500 font-bold">정면 회전 보정</span>
+                <div className="flex gap-1">
+                  {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((rad, i) => (
+                    <button
+                      key={i}
+                      onClick={() => updatePlayer({ glbFacingOffsetY: rad })}
+                      className={`px-1.5 py-0.5 rounded font-bold ${
+                        Math.abs((player.glbFacingOffsetY ?? 0) - rad) < 0.05
+                          ? 'bg-rose-500 text-white'
+                          : 'bg-black/5 dark:bg-white/10 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      {i * 90}°
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Dog GLB Slot */}
+            <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 space-y-2">
+              <div className="flex items-center justify-between text-xs font-extrabold text-slate-900 dark:text-white">
+                <span>🐶 반려동물 (dog.glb · 0.6m)</span>
+              </div>
+              <label className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-dashed border-amber-400/70 bg-amber-500/5 hover:bg-amber-500/15 cursor-pointer text-[11px] font-bold text-amber-500">
+                <Upload className="w-3.5 h-3.5" />
+                <span>dog.glb 파일 바로 불러오기</span>
+                <input type="file" accept=".glb,.gltf" onChange={handleLocalGlbUpload('dog')} className="hidden" />
+              </label>
+              <div className="flex items-center justify-between gap-1 text-[10.5px]">
+                <span className="text-slate-500 font-bold">정면 회전 보정</span>
+                <div className="flex gap-1">
+                  {[0, Math.PI / 2, Math.PI, -Math.PI / 2].map((rad, i) => (
+                    <button
+                      key={i}
+                      onClick={() => updatePet({ glbFacingOffsetY: rad })}
+                      className={`px-1.5 py-0.5 rounded font-bold ${
+                        Math.abs((pet.glbFacingOffsetY ?? 0) - rad) < 0.05
+                          ? 'bg-rose-500 text-white'
+                          : 'bg-black/5 dark:bg-white/10 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      {i * 90}°
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <div>
               <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
-                또는 <code>public/models/</code> 경로 로드
+                또는 <code>public/models/</code> 커스텀 경로 로드
               </label>
               <div className="flex gap-1.5">
                 <input
@@ -392,14 +449,15 @@ export const RightDrawer: React.FC = () => {
               </div>
             </div>
 
-            {pet.customGlbUrl && (
-              <button
-                onClick={() => setCustomGlbUrl(null)}
-                className="w-full py-2 rounded-xl bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> 기본 절차적 3D 펫으로 복원
-              </button>
-            )}
+            <button
+              onClick={() => {
+                updatePlayer({ customGlbUrl: null });
+                setCustomGlbUrl(null);
+              }}
+              className="w-full py-2 rounded-xl bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> 기본 절차적 3D 모델로 전환
+            </button>
           </div>
         )}
       </div>

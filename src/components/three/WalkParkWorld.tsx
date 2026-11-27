@@ -384,6 +384,8 @@ export const WalkParkWorld: React.FC = () => {
           isWalking={isWalking}
           isLocalPlayer
           speechText={visiblePlayerSpeech}
+          glbUrl={player.customGlbUrl}
+          glbFacingOffsetY={player.glbFacingOffsetY}
         />
       </group>
 

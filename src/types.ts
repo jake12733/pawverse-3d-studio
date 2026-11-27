@@ -43,6 +43,7 @@ export interface PlayerAvatarConfig {
   hairColor: string;
   skinColor: string;
   customGlbUrl: string | null;
+  glbFacingOffsetY: number;
 }
 
 export interface PetConfig {
@@ -55,6 +56,7 @@ export interface PetConfig {
   eyewear: EyewearType;
   collar: CollarType;
   customGlbUrl: string | null;
+  glbFacingOffsetY?: number;
 }
 
 export interface CareStats {

@@ -135,7 +135,8 @@ export const useMetaverseStore = create<MetaverseStore>((set, get) => ({
     shirtColor: '#F43F5E',
     hairColor: '#1E1B18',
     skinColor: '#F5D0B5',
-    customGlbUrl: null
+    customGlbUrl: './models/avatar.glb',
+    glbFacingOffsetY: 0
   },
   playerSpeechBubble: null,
   visitorBubbles: {},
@@ -149,7 +150,8 @@ export const useMetaverseStore = create<MetaverseStore>((set, get) => ({
     hat: 'none',
     eyewear: 'none',
     collar: 'led_collar',
-    customGlbUrl: null
+    customGlbUrl: './models/dog.glb',
+    glbFacingOffsetY: 0
   },
   petAction: 'idle',
   petFollowPlayer: true,
