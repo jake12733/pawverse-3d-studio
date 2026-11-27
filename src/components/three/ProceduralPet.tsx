@@ -503,21 +503,22 @@ export const ProceduralPet: React.FC<ProceduralPetProps> = ({
       {/* Active Care/Reaction 3D Particles */}
       <PetParticles type={particles} />
 
-      {/* NPC Nickname Tag */}
+      {/* Pet Nickname Tag — Low height (1.32) & lower zIndexRange so it never overlaps human avatar labels */}
       {nicknameTag && (
-        <Html position={[0, 1.55, 0]} center distanceFactor={9}>
-          <div className="px-2.5 py-0.5 rounded-full bg-slate-900/75 text-white text-[11px] font-bold whitespace-nowrap border border-white/20 backdrop-blur-md shadow">
+        <Html position={[0, 1.32, 0]} center distanceFactor={9.5} zIndexRange={[8, 0]}>
+          <div className="px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[10.5px] font-bold whitespace-nowrap border border-white/25 backdrop-blur-md shadow pointer-events-none select-none">
             {showHeartBadge ? '❤️ ' : '🐾 '}
             {nicknameTag}
           </div>
         </Html>
       )}
 
-      {/* Floating Speech Bubble */}
+      {/* Pet Floating Speech Bubble — Cleanly separated above pet nameplate with higher zIndexRange [24,15] & wrapping text */}
       {speechText && (
-        <Html position={[0, nicknameTag ? 1.98 : 1.75, 0]} center distanceFactor={9}>
-          <div className="px-3 py-1.5 rounded-2xl bg-white/95 text-slate-900 text-xs font-semibold whitespace-nowrap shadow-xl border border-slate-200 max-w-[240px] truncate">
+        <Html position={[0, nicknameTag ? 1.84 : 1.62, 0]} center distanceFactor={9.5} zIndexRange={[24, 15]}>
+          <div className="relative px-2.5 py-1.5 rounded-2xl bg-amber-50/96 text-slate-900 text-[11px] font-semibold shadow-xl border border-amber-200 max-w-[185px] text-center leading-snug break-words pointer-events-none select-none">
             {speechText}
+            <span className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2.5 h-2.5 bg-amber-50 border-r border-b border-amber-200 rotate-45" />
           </div>
         </Html>
       )}

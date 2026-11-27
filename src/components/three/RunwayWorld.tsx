@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Html, MeshReflectorMaterial, Sparkles } from '@react-three/drei';
+import { Environment, Html, MeshReflectorMaterial, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMetaverseStore } from '../../store/useMetaverseStore';
 import { ProceduralPet } from './ProceduralPet';
@@ -220,6 +220,7 @@ export const RunwayWorld: React.FC = () => {
       {/* Pastel Dusk Twilight Skybox (Light Mode) vs Dramatic Neon Runway (Dark Mode) */}
       <color attach="background" args={[isPastelMode ? '#ddd6fe' : '#090916']} />
       <fog attach="fog" args={[isPastelMode ? '#f5d0fe' : '#090916', 14, 38]} />
+      <Environment preset={isPastelMode ? 'sunset' : 'city'} environmentIntensity={0.68} />
 
       <ambientLight intensity={isPastelMode ? 0.95 : 0.52} />
       <spotLight position={[0, 8.5, 6]} angle={0.44} penumbra={0.6} intensity={55} color="#ffffff" castShadow />

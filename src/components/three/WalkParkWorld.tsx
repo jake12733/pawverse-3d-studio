@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { ContactShadows, Sparkles } from '@react-three/drei';
+import { ContactShadows, Environment, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMetaverseStore } from '../../store/useMetaverseStore';
 import { ProceduralPet } from './ProceduralPet';
@@ -96,8 +96,8 @@ export const WalkParkWorld: React.FC = () => {
     onMove: (pos, rotY) => socialAdapter.broadcastPlayerMove(pos, rotY)
   });
 
-  // 2. Companion Pet following Player Avatar
-  const petPos = useRef(new THREE.Vector3(1.1, 0, 2.8));
+  // 2. Companion Pet following beside Player Avatar (lateral offset avoids screen bubble collision)
+  const petPos = useRef(new THREE.Vector3(1.55, 0, 2.8));
   const petRotY = useRef(0);
   const petGroupRef = useRef<THREE.Group>(null);
   const [petWalking, setPetWalking] = useState(false);
@@ -131,13 +131,15 @@ export const WalkParkWorld: React.FC = () => {
     const dt = Math.min(delta, 0.05);
     const t = clock.getElapsedTime();
 
-    // Companion pet follows player smoothly
+    // Companion pet follows beside player smoothly (with clean lateral offset so nameplates & bubbles don't overlap)
     let pMoving = false;
     if (petFollowPlayer && petAction !== 'sleep') {
-      const dx = playerPos.current.x - petPos.current.x;
-      const dz = playerPos.current.z - petPos.current.z;
+      const targetX = playerPos.current.x + 1.5;
+      const targetZ = playerPos.current.z - 0.35;
+      const dx = targetX - petPos.current.x;
+      const dz = targetZ - petPos.current.z;
       const dist = Math.hypot(dx, dz);
-      if (dist > 1.5) {
+      if (dist > 0.75) {
         petPos.current.x += (dx / dist) * 4.1 * dt;
         petPos.current.z += (dz / dist) * 4.1 * dt;
         petRotY.current = Math.atan2(dx, dz);
@@ -223,8 +225,19 @@ export const WalkParkWorld: React.FC = () => {
     <group>
       <color attach="background" args={['#93c5fd']} />
       <fog attach="fog" args={['#bae6fd', 18, 44]} />
-      <ambientLight intensity={0.82} />
-      <directionalLight position={[10, 16, 8]} intensity={2.1} color="#fff7e6" castShadow shadow-mapSize={[1024, 1024]} />
+      <Environment preset="park" environmentIntensity={0.65} />
+      <ambientLight intensity={0.48} />
+      <hemisphereLight args={['#e0f2fe', '#4d7c4f', 0.45]} />
+      <directionalLight
+        position={[10, 16, 8]}
+        intensity={2.2}
+        color="#fff7e6"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.03}
+        shadow-radius={4}
+      />
 
       {/* Open Community Plaza Grass Field */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>

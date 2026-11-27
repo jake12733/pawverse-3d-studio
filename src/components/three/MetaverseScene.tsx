@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { OrbitControls, SoftShadows } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import * as THREE from 'three';
 import { useMetaverseStore } from '../../store/useMetaverseStore';
 import { MyRoomWorld } from './MyRoomWorld';
 import { WalkParkWorld } from './WalkParkWorld';
@@ -47,11 +48,17 @@ export const MetaverseScene: React.FC = () => {
   return (
     <div className="fixed inset-0 w-full h-full">
       <Canvas
-        shadows
+        shadows="soft"
         dpr={[1, 2]}
-        camera={{ fov: 46, near: 0.1, far: 120, position: [0, 3.2, 7.2] }}
-        gl={{ preserveDrawingBuffer: true, antialias: true }}
+        camera={{ fov: 45, near: 0.1, far: 120, position: [0, 3.2, 7.2] }}
+        gl={{
+          preserveDrawingBuffer: true,
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.06
+        }}
       >
+        <SoftShadows size={20} samples={12} focus={0.5} />
         <SceneCameraResetAndCapture />
 
         {worldMode === 'myroom' && <MyRoomWorld />}
@@ -70,8 +77,9 @@ export const MetaverseScene: React.FC = () => {
           />
         )}
 
-        <EffectComposer multisampling={0}>
-          <Bloom mipmapBlur luminanceThreshold={1.08} intensity={0.68} />
+        <EffectComposer multisampling={4}>
+          <Bloom mipmapBlur luminanceThreshold={0.96} intensity={0.78} radius={0.65} />
+          <Vignette eskil={false} offset={0.22} darkness={0.26} />
         </EffectComposer>
       </Canvas>
     </div>

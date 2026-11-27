@@ -45,7 +45,7 @@ export const LeftPanel: React.FC = () => {
   ];
 
   return (
-    <aside className="fixed left-3 top-[76px] bottom-[92px] w-[310px] max-w-[calc(100vw-24px)] z-20 flex flex-col gap-2.5 pointer-events-none">
+    <aside className="fixed left-3 top-[76px] bottom-[92px] w-[310px] max-w-[calc(100vw-24px)] z-30 flex flex-col gap-2.5 pointer-events-none">
       {/* World 3 Runway Director Control Card */}
       {worldMode === 'runway' && (
         <div className="glass-panel pointer-events-auto rounded-2xl p-3.5 flex flex-col gap-2.5">

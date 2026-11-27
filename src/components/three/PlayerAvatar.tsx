@@ -136,13 +136,13 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
         )}
       </group>
 
-      {/* Overhead Nickname Pill */}
-      <Html position={[0, 2.15, 0]} center distanceFactor={10}>
+      {/* Overhead Nickname Pill — Lower layer (zIndexRange [10,0]), generous clearance from speech bubble */}
+      <Html position={[0, 2.22, 0]} center distanceFactor={10} zIndexRange={[10, 0]}>
         <div
-          className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border backdrop-blur-md shadow ${
+          className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border backdrop-blur-md shadow pointer-events-none select-none ${
             isLocalPlayer
-              ? 'bg-rose-500/90 text-white border-white/30'
-              : 'bg-slate-900/75 text-white border-white/20'
+              ? 'bg-rose-500/92 text-white border-white/35'
+              : 'bg-slate-900/78 text-white border-white/20'
           }`}
         >
           {isLocalPlayer ? '★ ' : '👤 '}
@@ -150,11 +150,12 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
         </div>
       </Html>
 
-      {/* Live Overhead Speech Bubble */}
+      {/* Live Overhead Speech Bubble — Dedicated high Y offset (2.92) & top zIndexRange [29,20] so it NEVER collides with nameplates */}
       {speechText && (
-        <Html position={[0, 2.58, 0]} center distanceFactor={10}>
-          <div className="px-3 py-1.5 rounded-2xl bg-white/95 text-slate-900 text-xs font-bold whitespace-nowrap shadow-xl border border-slate-200 max-w-[240px] truncate">
+        <Html position={[0, 2.92, 0]} center distanceFactor={10} zIndexRange={[29, 20]}>
+          <div className="relative px-3 py-1.5 rounded-2xl bg-white/96 text-slate-900 text-xs font-bold shadow-xl border border-slate-200 max-w-[210px] text-center leading-snug break-words pointer-events-none select-none">
             {speechText}
+            <span className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-slate-200 rotate-45" />
           </div>
         </Html>
       )}

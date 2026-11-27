@@ -59,7 +59,7 @@ export const RightDrawer: React.FC = () => {
   };
 
   return (
-    <aside className="fixed right-3 top-[76px] bottom-[92px] w-[325px] max-w-[calc(100vw-24px)] z-20 glass-panel rounded-2xl p-3.5 flex flex-col">
+    <aside className="fixed right-3 top-[76px] bottom-[92px] w-[325px] max-w-[calc(100vw-24px)] z-30 glass-panel rounded-2xl p-3.5 flex flex-col">
       {/* Drawer Tabs */}
       <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-black/5 dark:bg-white/10 mb-3">
         {[
