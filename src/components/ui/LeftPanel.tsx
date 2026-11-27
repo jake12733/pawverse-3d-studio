@@ -179,11 +179,16 @@ export const LeftPanel: React.FC = () => {
               className={`rounded-xl px-2.5 py-2 text-xs leading-relaxed ${
                 m.sender === 'user'
                   ? 'ml-6 bg-rose-500 text-white'
+                  : m.sender === 'visitor'
+                  ? 'mr-4 bg-emerald-500/15 border border-emerald-400/30 text-emerald-900 dark:text-emerald-100'
                   : m.sender === 'system'
                   ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-200 text-[11px]'
                   : 'mr-4 bg-black/5 dark:bg-white/10 text-slate-800 dark:text-slate-100'
               }`}
             >
+              {m.senderName && m.sender !== 'system' && (
+                <div className="text-[10px] font-extrabold opacity-80 mb-0.5">{m.senderName}</div>
+              )}
               <div>{m.text}</div>
               <div className="text-[9px] opacity-60 mt-0.5 text-right">{m.timestamp}</div>
             </div>

@@ -1,131 +1,139 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { ContactShadows, Sparkles } from '@react-three/drei';
+import { ContactShadows, Grid, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMetaverseStore } from '../../store/useMetaverseStore';
 import { ProceduralPet } from './ProceduralPet';
+import { PlayerAvatar } from './PlayerAvatar';
+import { FurnitureItem3D } from './FurnitureItem3D';
+import { useThirdPersonController } from './useThirdPersonController';
 import { ROOM_FLOOR_OPTIONS } from '../../data/catalog';
+import { PetAction } from '../../types';
 
 export const MyRoomWorld: React.FC = () => {
+  const player = useMetaverseStore((s) => s.player);
+  const playerSpeechBubble = useMetaverseStore((s) => s.playerSpeechBubble);
   const pet = useMetaverseStore((s) => s.pet);
   const petAction = useMetaverseStore((s) => s.petAction);
+  const petFollowPlayer = useMetaverseStore((s) => s.petFollowPlayer);
+  const petInteractTarget = useMetaverseStore((s) => s.petInteractTarget);
   const speechBubble = useMetaverseStore((s) => s.speechBubble);
   const activeParticles = useMetaverseStore((s) => s.activeParticles);
   const room = useMetaverseStore((s) => s.room);
-  const ballTriggerId = useMetaverseStore((s) => s.ballTriggerId);
-  const triggerRoomBallFetch = useMetaverseStore((s) => s.triggerRoomBallFetch);
-  const carePet = useMetaverseStore((s) => s.carePet);
 
-  // Autonomous fetch state for the 3D toy ball
-  const petPos = useRef(new THREE.Vector3(0, 0, 0.2));
+  const selectFurniture = useMetaverseStore((s) => s.selectFurniture);
+  const moveSelectedFurniture = useMetaverseStore((s) => s.moveSelectedFurniture);
+  const interactWithFurniture = useMetaverseStore((s) => s.interactWithFurniture);
+  const carePet = useMetaverseStore((s) => s.carePet);
+  const triggerPetAction = useMetaverseStore((s) => s.triggerPetAction);
+
+  // 1. Playable 3D Human Avatar + 3rd-person orbit camera
+  const { playerPos, playerGroupRef, isWalking, wasClick } = useThirdPersonController({
+    initialPos: [0, 0, 1.8],
+    bounds: { minX: -3.7, maxX: 3.7, minZ: -3.2, maxZ: 3.2 },
+    speed: 3.8,
+    initialDistance: 5.8,
+    initialPitch: 0.44
+  });
+
+  // 2. 3D Companion Pet following Player Avatar OR reacting to placed furniture
+  const petPos = useRef(new THREE.Vector3(0.95, 0, 1.2));
   const petRotY = useRef(0);
-  const ballPos = useRef(new THREE.Vector3(1.85, 0.24, 1.35));
-  const ballMeshRef = useRef<THREE.Mesh>(null);
   const petGroupRef = useRef<THREE.Group>(null);
-  const fetchPhase = useRef<'idle' | 'chasing' | 'returning'>('idle');
-  const [isChasing, setIsChasing] = useState(false);
+  const roamTarget = useRef(new THREE.Vector3(0.8, 0, 0.5));
+  const roamWait = useRef(2.0);
+  const activeFurnitureGoal = useRef<{ pos: THREE.Vector3; kind: string } | null>(null);
+  const [petMoving, setPetMoving] = useState(false);
 
   useEffect(() => {
-    if (ballTriggerId === 0) return;
-    // Toss the ball to a playful random spot inside the room
-    const angle = Math.random() * Math.PI * 2;
-    const rx = Math.max(-2.6, Math.min(2.6, Math.cos(angle) * 2.4));
-    const rz = Math.max(-1.6, Math.min(2.4, Math.sin(angle) * 2.0));
-    ballPos.current.set(rx, 0.24, rz);
-    fetchPhase.current = 'chasing';
-    setIsChasing(true);
-  }, [ballTriggerId]);
+    if (!petInteractTarget) return;
+    activeFurnitureGoal.current = {
+      pos: new THREE.Vector3(petInteractTarget.pos[0], 0, petInteractTarget.pos[2]),
+      kind: petInteractTarget.kind
+    };
+  }, [petInteractTarget]);
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05);
+    let moving = false;
 
-    if (fetchPhase.current === 'chasing') {
-      const dx = ballPos.current.x - petPos.current.x;
-      const dz = ballPos.current.z - petPos.current.z;
+    if (activeFurnitureGoal.current) {
+      const goal = activeFurnitureGoal.current;
+      const dx = goal.pos.x - petPos.current.x;
+      const dz = goal.pos.z - petPos.current.z;
       const dist = Math.hypot(dx, dz);
-      if (dist > 0.35) {
+      if (dist > 0.65) {
         petPos.current.x += (dx / dist) * 3.1 * dt;
         petPos.current.z += (dz / dist) * 3.1 * dt;
         petRotY.current = Math.atan2(dx, dz);
+        moving = true;
       } else {
-        fetchPhase.current = 'returning';
+        const reactAction: PetAction =
+          goal.kind === 'bowl' ? 'eat' : goal.kind === 'toy' ? 'jump' : goal.kind === 'bed' ? 'sleep' : 'pet';
+        const reactParticles = goal.kind === 'toy' ? 'sparkle' : 'heart';
+        triggerPetAction(reactAction, undefined, reactParticles, 2600);
+        activeFurnitureGoal.current = null;
       }
-    } else if (fetchPhase.current === 'returning') {
-      const dx = 0 - petPos.current.x;
-      const dz = 0.2 - petPos.current.z;
+    } else if (petFollowPlayer && petAction !== 'sleep') {
+      // Follow smoothly beside/behind the Player Avatar
+      const dx = playerPos.current.x - petPos.current.x;
+      const dz = playerPos.current.z - petPos.current.z;
       const dist = Math.hypot(dx, dz);
-      if (dist > 0.25) {
-        petPos.current.x += (dx / dist) * 2.6 * dt;
-        petPos.current.z += (dz / dist) * 2.6 * dt;
+      if (dist > 1.45) {
+        petPos.current.x += (dx / dist) * 3.2 * dt;
+        petPos.current.z += (dz / dist) * 3.2 * dt;
         petRotY.current = Math.atan2(dx, dz);
-        // Carry ball in front of mouth!
-        ballPos.current.set(
-          petPos.current.x + Math.sin(petRotY.current) * 0.65,
-          0.52,
-          petPos.current.z + Math.cos(petRotY.current) * 0.65
-        );
+        moving = true;
+      }
+    } else if (petAction !== 'sleep') {
+      // Autonomous free roaming inside Pet House
+      const dx = roamTarget.current.x - petPos.current.x;
+      const dz = roamTarget.current.z - petPos.current.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 0.35) {
+        petPos.current.x += (dx / dist) * 1.65 * dt;
+        petPos.current.z += (dz / dist) * 1.65 * dt;
+        petRotY.current = Math.atan2(dx, dz);
+        moving = true;
       } else {
-        fetchPhase.current = 'idle';
-        setIsChasing(false);
-        ballPos.current.set(1.6, 0.24, 1.3);
-        petRotY.current = 0;
+        roamWait.current -= dt;
+        if (roamWait.current <= 0) {
+          roamTarget.current.set((Math.random() - 0.5) * 5.8, 0, (Math.random() - 0.5) * 4.8);
+          roamWait.current = 2.5 + Math.random() * 2.5;
+        }
       }
     }
 
+    if (moving !== petMoving) setPetMoving(moving);
+
     if (petGroupRef.current) {
       petGroupRef.current.position.copy(petPos.current);
-      petGroupRef.current.rotation.y = THREE.MathUtils.lerp(petGroupRef.current.rotation.y, petRotY.current, 0.18);
-    }
-    if (ballMeshRef.current) {
-      ballMeshRef.current.position.copy(ballPos.current);
-      if (fetchPhase.current === 'chasing') {
-        ballMeshRef.current.rotation.x += dt * 4;
-      }
+      let diff = petRotY.current - petGroupRef.current.rotation.y;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      petGroupRef.current.rotation.y += diff * 0.16;
     }
   });
 
   const floorSpec = ROOM_FLOOR_OPTIONS.find((f) => f.id === room.floorType) || ROOM_FLOOR_OPTIONS[0];
   const floorRoughness = room.floorType === 'marble' ? 0.16 : room.floorType === 'terrazzo' ? 0.42 : 0.68;
 
-  const layout = useMemo(() => {
-    if (room.layoutPreset === 'gallery') {
-      return {
-        sofa: [0, 0, -2.9] as [number, number, number],
-        cushion: [-2.4, 0, 1.1] as [number, number, number],
-        catTower: [2.8, 0, -2.3] as [number, number, number],
-        lamp: [-3.1, 0, -2.8] as [number, number, number]
-      };
-    }
-    if (room.layoutPreset === 'play') {
-      return {
-        sofa: [-2.7, 0, -2.6] as [number, number, number],
-        cushion: [2.3, 0, -1.2] as [number, number, number],
-        catTower: [2.8, 0, -2.6] as [number, number, number],
-        lamp: [-3.3, 0, 1.2] as [number, number, number]
-      };
-    }
-    return {
-      sofa: [-1.4, 0, -2.7] as [number, number, number],
-      cushion: [-2.4, 0, 0.7] as [number, number, number],
-      catTower: [2.7, 0, -2.3] as [number, number, number],
-      lamp: [3.2, 0, 0.6] as [number, number, number]
-    };
-  }, [room.layoutPreset]);
-
   const lighting = useMemo(() => {
     switch (room.lightingMood) {
       case 'sunset':
         return { ambient: 0.55, main: '#ffb07c', mainInt: 2.1, windowSky: '#fb923c', bg: '#2c1e24' };
       case 'night':
-        return { ambient: 0.25, main: '#93c5fd', mainInt: 0.65, windowSky: '#0f172a', bg: '#0b1020' };
+        return { ambient: 0.28, main: '#93c5fd', mainInt: 0.65, windowSky: '#0f172a', bg: '#0b1020' };
       case 'cyberpunk':
-        return { ambient: 0.35, main: '#e879f9', mainInt: 1.5, windowSky: '#3b0764', bg: '#120826' };
+        return { ambient: 0.38, main: '#e879f9', mainInt: 1.5, windowSky: '#3b0764', bg: '#120826' };
       default:
-        return { ambient: 0.78, main: '#fff7e8', mainInt: 2.2, windowSky: '#7dd3fc', bg: '#1b2230' };
+        return { ambient: 0.8, main: '#fff7e8', mainInt: 2.2, windowSky: '#7dd3fc', bg: '#1b2230' };
     }
   }, [room.lightingMood]);
 
-  const visibleSpeech = speechBubble && speechBubble.expiresAt > Date.now() ? speechBubble.text : null;
+  const visiblePetSpeech = speechBubble && speechBubble.expiresAt > Date.now() ? speechBubble.text : null;
+  const visiblePlayerSpeech =
+    playerSpeechBubble && playerSpeechBubble.expiresAt > Date.now() ? playerSpeechBubble.text : null;
 
   return (
     <group>
@@ -145,39 +153,70 @@ export const MyRoomWorld: React.FC = () => {
         </>
       )}
 
-      {/* Room Floor */}
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[9, 8]} />
-        <meshStandardMaterial color={floorSpec.color} roughness={floorRoughness} metalness={room.floorType === 'marble' ? 0.15 : 0.04} />
+      {/* Interactive Room Floor (click to move selected furniture in Decorate Mode!) */}
+      <mesh
+        receiveShadow
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0, 0]}
+        onClick={(e) => {
+          if (!wasClick()) return;
+          if (room.decorateMode && room.selectedFurnitureId) {
+            e.stopPropagation();
+            moveSelectedFurniture([e.point.x, 0, e.point.z]);
+          }
+        }}
+      >
+        <planeGeometry args={[9.2, 8.2]} />
+        <meshStandardMaterial
+          color={floorSpec.color}
+          roughness={floorRoughness}
+          metalness={room.floorType === 'marble' ? 0.15 : 0.04}
+        />
       </mesh>
 
-      {/* Cozy Center Rug */}
+      {/* Architectural Placement Grid visible in 3D Decorate Mode */}
+      {room.decorateMode && (
+        <Grid
+          position={[0, 0.015, 0]}
+          args={[9, 8]}
+          cellSize={0.5}
+          sectionSize={1.5}
+          cellColor="#94a3b8"
+          sectionColor="#f43f5e"
+          fadeDistance={16}
+        />
+      )}
+
+      {/* Center Rug */}
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0.25]}>
-        <circleGeometry args={[2.1, 40]} />
+        <circleGeometry args={[2.0, 40]} />
         <meshStandardMaterial color="#f5efe6" roughness={0.95} />
       </mesh>
 
       {/* Back Wall & Left Wall */}
-      <mesh receiveShadow position={[0, 2.4, -4]}>
-        <boxGeometry args={[9, 4.8, 0.22]} />
+      <mesh receiveShadow position={[0, 2.4, -4.1]}>
+        <boxGeometry args={[9.2, 4.8, 0.22]} />
         <meshStandardMaterial color={room.wallColor} roughness={0.85} />
       </mesh>
-      <mesh receiveShadow position={[-4.5, 2.4, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[8, 4.8, 0.22]} />
+      <mesh receiveShadow position={[-4.6, 2.4, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <boxGeometry args={[8.2, 4.8, 0.22]} />
         <meshStandardMaterial color={room.wallColor} roughness={0.85} />
       </mesh>
 
-      {/* Architectural Window with Day/Sunset/Night/Cyberpunk Sky */}
-      <group position={[0.5, 2.55, -3.86]}>
+      {/* Architectural Window */}
+      <group position={[0.4, 2.6, -3.96]}>
         <mesh>
           <boxGeometry args={[3.1, 2.0, 0.08]} />
           <meshStandardMaterial color="#1e293b" roughness={0.35} />
         </mesh>
         <mesh position={[0, 0, 0.05]}>
           <planeGeometry args={[2.86, 1.78]} />
-          <meshStandardMaterial color={lighting.windowSky} emissive={lighting.windowSky} emissiveIntensity={room.lightingMood === 'night' ? 0.45 : 0.85} />
+          <meshStandardMaterial
+            color={lighting.windowSky}
+            emissive={lighting.windowSky}
+            emissiveIntensity={room.lightingMood === 'night' ? 0.45 : 0.85}
+          />
         </mesh>
-        {/* Window Mullions */}
         <mesh position={[0, 0, 0.08]}>
           <boxGeometry args={[0.07, 1.85, 0.05]} />
           <meshStandardMaterial color="#1e293b" />
@@ -188,123 +227,54 @@ export const MyRoomWorld: React.FC = () => {
         </mesh>
       </group>
 
-      {/* Modern Sofa */}
-      <group position={layout.sofa}>
-        <mesh castShadow receiveShadow position={[0, 0.35, 0]}>
-          <boxGeometry args={[2.5, 0.5, 1.05]} />
-          <meshStandardMaterial color="#475569" roughness={0.82} />
-        </mesh>
-        <mesh castShadow position={[0, 0.82, -0.38]}>
-          <boxGeometry args={[2.5, 0.65, 0.28]} />
-          <meshStandardMaterial color="#334155" roughness={0.84} />
-        </mesh>
-        <mesh castShadow position={[-1.15, 0.62, 0]}>
-          <boxGeometry args={[0.24, 0.55, 1.05]} />
-          <meshStandardMaterial color="#334155" roughness={0.84} />
-        </mesh>
-        <mesh castShadow position={[1.15, 0.62, 0]}>
-          <boxGeometry args={[0.24, 0.55, 1.05]} />
-          <meshStandardMaterial color="#334155" roughness={0.84} />
-        </mesh>
-      </group>
+      {/* Dynamic Placeable & Movable 3D Furniture Items */}
+      {room.furniture.map((item) => (
+        <FurnitureItem3D
+          key={item.id}
+          item={item}
+          decorateMode={room.decorateMode}
+          isSelected={room.selectedFurnitureId === item.id}
+          isNightMood={room.lightingMood === 'night'}
+          isCyberpunk={room.lightingMood === 'cyberpunk'}
+          onSelect={() => selectFurniture(item.id)}
+          onInteract={() => interactWithFurniture(item)}
+        />
+      ))}
 
-      {/* Designer Pet Cushion */}
-      <group position={layout.cushion}>
-        <mesh castShadow receiveShadow position={[0, 0.14, 0]}>
-          <cylinderGeometry args={[0.78, 0.84, 0.26, 28]} />
-          <meshStandardMaterial color={room.cushionColor} roughness={0.88} />
-        </mesh>
-        <mesh receiveShadow position={[0, 0.24, 0]}>
-          <cylinderGeometry args={[0.58, 0.62, 0.1, 24]} />
-          <meshStandardMaterial color="#fff8f0" roughness={0.92} />
-        </mesh>
-      </group>
-
-      {/* Multi-Tier 3D Cat Tower */}
-      <group position={layout.catTower}>
-        <mesh castShadow receiveShadow position={[0, 0.08, 0]}>
-          <boxGeometry args={[1.1, 0.16, 1.1]} />
-          <meshStandardMaterial color="#d6c5b3" roughness={0.9} />
-        </mesh>
-        <mesh castShadow position={[-0.25, 0.68, -0.15]}>
-          <cylinderGeometry args={[0.1, 0.1, 1.2, 16]} />
-          <meshStandardMaterial color="#b08968" roughness={0.95} />
-        </mesh>
-        <mesh castShadow position={[0.28, 1.08, 0.18]}>
-          <cylinderGeometry args={[0.1, 0.1, 2.0, 16]} />
-          <meshStandardMaterial color="#b08968" roughness={0.95} />
-        </mesh>
-        <mesh castShadow position={[-0.25, 1.32, -0.15]}>
-          <cylinderGeometry args={[0.42, 0.42, 0.12, 20]} />
-          <meshStandardMaterial color="#ede0d4" roughness={0.88} />
-        </mesh>
-        <mesh castShadow position={[0.28, 2.12, 0.18]}>
-          <cylinderGeometry args={[0.46, 0.46, 0.14, 20]} />
-          <meshStandardMaterial color={room.cushionColor} roughness={0.85} />
-        </mesh>
-      </group>
-
-      {/* Floor Lamp with Glowing Shade */}
-      <group position={layout.lamp}>
-        <mesh castShadow position={[0, 0.05, 0]}>
-          <cylinderGeometry args={[0.28, 0.3, 0.08, 20]} />
-          <meshStandardMaterial color="#1e293b" metalness={0.7} roughness={0.3} />
-        </mesh>
-        <mesh castShadow position={[0, 1.15, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 2.2, 12]} />
-          <meshStandardMaterial color="#334155" metalness={0.7} roughness={0.3} />
-        </mesh>
-        <mesh position={[0, 2.25, 0]}>
-          <cylinderGeometry args={[0.26, 0.38, 0.48, 24, 1, true]} />
-          <meshStandardMaterial
-            color="#fef3c7"
-            emissive={room.lightingMood === 'cyberpunk' ? '#22d3ee' : '#fde68a'}
-            emissiveIntensity={room.lightingMood === 'day' ? 0.5 : 1.7}
-            side={THREE.DoubleSide}
-            toneMapped={false}
-          />
-        </mesh>
-        <pointLight
-          position={[0, 2.1, 0]}
-          color={room.lightingMood === 'cyberpunk' ? '#22d3ee' : '#ffd89b'}
-          intensity={room.lightingMood === 'day' ? 0.8 : 2.6}
-          distance={7}
+      {/* Playable 3D Human Player Avatar */}
+      <group ref={playerGroupRef} position={[0, 0, 1.8]}>
+        <PlayerAvatar
+          nickname={player.nickname}
+          shirtColor={player.shirtColor}
+          hairColor={player.hairColor}
+          skinColor={player.skinColor}
+          isWalking={isWalking}
+          isLocalPlayer
+          speechText={visiblePlayerSpeech}
         />
       </group>
 
-      {/* Clickable 3D Toy Ball (triggers autonomous pet fetch!) */}
-      <mesh
-        ref={ballMeshRef}
-        castShadow
-        position={[1.85, 0.24, 1.35]}
-        onClick={(e) => {
-          e.stopPropagation();
-          triggerRoomBallFetch();
-        }}
-        onPointerOver={() => {
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = 'auto';
-        }}
-      >
-        <sphereGeometry args={[0.24, 20, 20]} />
-        <meshStandardMaterial color="#a3e635" emissive="#84cc16" emissiveIntensity={0.45} roughness={0.35} />
-      </mesh>
-
-      {/* Main Player Pet */}
-      <group ref={petGroupRef} position={[0, 0, 0.2]}>
+      {/* 3D Companion Pet following Player Avatar & interacting with furniture */}
+      <group ref={petGroupRef} position={[0.95, 0, 1.2]}>
         <ProceduralPet
           pet={pet}
-          action={isChasing ? 'walk' : petAction}
-          speechText={visibleSpeech}
+          action={petMoving ? 'walk' : petAction}
+          nicknameTag={pet.name}
+          speechText={visiblePetSpeech}
           particles={activeParticles}
           onClick={() => carePet()}
         />
       </group>
 
-      <Sparkles count={24} scale={[7, 3.5, 6]} size={2} speed={0.3} opacity={0.4} color={room.lightingMood === 'cyberpunk' ? '#22d3ee' : '#fef08a'} />
-      <ContactShadows position={[0, 0.02, 0]} opacity={0.45} scale={11} blur={2} far={4} />
+      <Sparkles
+        count={24}
+        scale={[7.5, 3.5, 6.5]}
+        size={2}
+        speed={0.3}
+        opacity={0.4}
+        color={room.lightingMood === 'cyberpunk' ? '#22d3ee' : '#fef08a'}
+      />
+      <ContactShadows position={[0, 0.02, 0]} opacity={0.42} scale={11.5} blur={2} far={4} />
     </group>
   );
 };

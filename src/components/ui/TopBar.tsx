@@ -4,8 +4,8 @@ import { useMetaverseStore } from '../../store/useMetaverseStore';
 import { WorldMode } from '../../types';
 
 const WORLD_TABS: { id: WorldMode; label: string; icon: React.ReactNode }[] = [
-  { id: 'myroom', label: '마이룸', icon: <Home className="w-4 h-4" /> },
-  { id: 'park', label: '산책 공원', icon: <Trees className="w-4 h-4" /> },
+  { id: 'myroom', label: '내 펫 하우스', icon: <Home className="w-4 h-4" /> },
+  { id: 'park', label: '커뮤니티 광장', icon: <Trees className="w-4 h-4" /> },
   { id: 'runway', label: 'AI 패션쇼', icon: <Sparkles className="w-4 h-4" /> },
   { id: 'guide', label: 'AI 제작 가이드', icon: <BookOpen className="w-4 h-4" /> }
 ];

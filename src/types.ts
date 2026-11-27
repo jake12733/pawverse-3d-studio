@@ -26,6 +26,25 @@ export type LightingMood = 'day' | 'sunset' | 'night' | 'cyberpunk';
 export type RoomLayoutPreset = 'cozy' | 'gallery' | 'play';
 export type RunwayCameraAngle = 'front' | 'low' | 'orbit360';
 
+export type FurnitureKind = 'bed' | 'bowl' | 'toy' | 'plant' | 'lamp' | 'cattower' | 'sofa';
+
+export interface PlacedFurnitureItem {
+  id: string;
+  kind: FurnitureKind;
+  name: string;
+  position: [number, number, number];
+  rotationY: number;
+  color: string;
+}
+
+export interface PlayerAvatarConfig {
+  nickname: string;
+  shirtColor: string;
+  hairColor: string;
+  skinColor: string;
+  customGlbUrl: string | null;
+}
+
 export interface PetConfig {
   name: string;
   breed: PetBreed;
@@ -51,6 +70,9 @@ export interface RoomConfig {
   cushionColor: string;
   lightingMood: LightingMood;
   layoutPreset: RoomLayoutPreset;
+  decorateMode: boolean;
+  selectedFurnitureId: string | null;
+  furniture: PlacedFurnitureItem[];
 }
 
 export interface RunwayState {
@@ -62,7 +84,8 @@ export interface RunwayState {
 
 export interface ChatMessage {
   id: string;
-  sender: 'user' | 'pet' | 'system';
+  sender: 'user' | 'pet' | 'visitor' | 'system';
+  senderName?: string;
   text: string;
   timestamp: string;
 }

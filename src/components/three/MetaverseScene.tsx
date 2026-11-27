@@ -31,13 +31,7 @@ function SceneCameraResetAndCapture() {
   }, [gl]);
 
   useEffect(() => {
-    if (worldMode === 'myroom') {
-      camera.position.set(0, 2.9, 6.2);
-      camera.lookAt(0, 0.8, 0);
-    } else if (worldMode === 'park') {
-      camera.position.set(0, 5.8, 10.5);
-      camera.lookAt(0, 0.7, 2);
-    } else if (worldMode === 'runway') {
+    if (worldMode === 'runway') {
       camera.position.set(0, 1.85, 6.4);
       camera.lookAt(0, 0.9, 1);
     }
@@ -55,7 +49,7 @@ export const MetaverseScene: React.FC = () => {
       <Canvas
         shadows
         dpr={[1, 2]}
-        camera={{ fov: 46, near: 0.1, far: 120, position: [0, 2.9, 6.2] }}
+        camera={{ fov: 46, near: 0.1, far: 120, position: [0, 3.2, 7.2] }}
         gl={{ preserveDrawingBuffer: true, antialias: true }}
       >
         <SceneCameraResetAndCapture />
@@ -64,19 +58,20 @@ export const MetaverseScene: React.FC = () => {
         {worldMode === 'park' && <WalkParkWorld />}
         {worldMode === 'runway' && <RunwayWorld />}
 
-        {!(worldMode === 'runway' && runwayActive) && worldMode !== 'park' && (
+        {/* OrbitControls only in Runway standby; MyRoom & Plaza use true 3rd-person avatar follow camera */}
+        {worldMode === 'runway' && !runwayActive && (
           <OrbitControls
             makeDefault
             enablePan={false}
             minDistance={2.8}
-            maxDistance={11}
+            maxDistance={12}
             maxPolarAngle={Math.PI / 2 - 0.06}
             target={[0, 0.85, 0]}
           />
         )}
 
         <EffectComposer multisampling={0}>
-          <Bloom mipmapBlur luminanceThreshold={1.05} intensity={0.72} />
+          <Bloom mipmapBlur luminanceThreshold={1.08} intensity={0.68} />
         </EffectComposer>
       </Canvas>
     </div>

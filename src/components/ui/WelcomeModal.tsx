@@ -12,23 +12,23 @@ export const WelcomeModal: React.FC = () => {
   const worlds = [
     {
       icon: <Home className="w-5 h-5 text-amber-400" />,
-      title: '1. 마이룸 & 3D 인테리어',
-      desc: '벽지·바닥재·낮/밤/네온 조명 전환 및 바닥의 장난감 공 클릭 시 자율 물어오기!'
+      title: '1. 내 펫 하우스 & 3D 공간 꾸미기',
+      desc: '내 아바타를 WASD로 직접 조종하고, 펫 베드·밥그릇·장난감·화분·조명을 3D 바닥에 배치·이동하세요!'
     },
     {
       icon: <Trees className="w-5 h-5 text-emerald-400" />,
-      title: '2. 가상 산책 공원 & 광장',
-      desc: 'WASD·클릭 산책, 숨겨진 보물상자(+150P), AI NPC 3마리와 꼬리 흔들기 하트 교감!'
+      title: '2. 커뮤니티 광장 & 실시간 소셜',
+      desc: '방문자 아바타·반려동물들과 함께 산책하고, 채팅 시 아바타 머리 위 말풍선으로 실시간 소통하세요!'
     },
     {
       icon: <Sparkles className="w-5 h-5 text-rose-400" />,
       title: '3. AI 패션쇼 런웨이',
-      desc: '네온 후드·한복 퓨전 망토 입고 스포트라이트 워킹 + 자동 시네마틱 카메라 연출!'
+      desc: '네온 후드·한복 망토·타탄 원피스·핑크 튜튜를 입고 스포트라이트 워킹 + 자동 시네마틱 카메라!'
     },
     {
       icon: <BookOpen className="w-5 h-5 text-indigo-400" />,
-      title: '4. AI 파이프라인 & GLB 교체',
-      desc: 'Meshy/TripoSR/Skybox/Kling/Suno AI 제작 가이드 + 로컬 .GLB 3D 모델 즉시 교체!'
+      title: '4. AI 제작 가이드 & .GLB 교체',
+      desc: 'Meshy/TripoSR/Skybox/Kling AI 제작 파이프라인 안내 및 로컬 .GLB 3D 모델 즉시 교체 지원!'
     }
   ];
 

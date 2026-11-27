@@ -1,4 +1,42 @@
-import { AIToolGuideItem, FloorType, LightingMood, PetBreed, RoomLayoutPreset } from '../types';
+import { AIToolGuideItem, FloorType, FurnitureKind, LightingMood, PetBreed, PlacedFurnitureItem, RoomLayoutPreset } from '../types';
+
+export interface FurnitureCatalogItem {
+  kind: FurnitureKind;
+  name: string;
+  emoji: string;
+  defaultColor: string;
+  interactionHint: string;
+  price: number;
+}
+
+export const FURNITURE_CATALOG: FurnitureCatalogItem[] = [
+  { kind: 'bed', name: '펫 베드', emoji: '🛏️', defaultColor: '#FF7A59', interactionHint: '휴식 · 에너지 +20', price: 0 },
+  { kind: 'bowl', name: '밥그릇 & 급수기', emoji: '🥣', defaultColor: '#38BDF8', interactionHint: '식사 · 포만감 +22', price: 0 },
+  { kind: 'toy', name: '장난감 볼 세트', emoji: '🎾', defaultColor: '#A3E635', interactionHint: '놀이 · 애정도 +12', price: 0 },
+  { kind: 'plant', name: '실내 화분', emoji: '🪴', defaultColor: '#2F9E62', interactionHint: '힐링 · 청결/기분 UP', price: 0 },
+  { kind: 'lamp', name: '조명 스탠드', emoji: '💡', defaultColor: '#FDE68A', interactionHint: '무드 조명 발광', price: 0 },
+  { kind: 'cattower', name: '원목 캣타워', emoji: '🪵', defaultColor: '#D6C5B3', interactionHint: '탐험 · 애정도 +10', price: 0 },
+  { kind: 'sofa', name: '모던 라운지 소파', emoji: '🛋️', defaultColor: '#475569', interactionHint: '함께 휴식', price: 0 }
+];
+
+export const DEFAULT_ROOM_FURNITURE: PlacedFurnitureItem[] = [
+  { id: 'f-sofa-1', kind: 'sofa', name: '모던 라운지 소파', position: [-1.4, 0, -2.9], rotationY: 0, color: '#475569' },
+  { id: 'f-bed-1', kind: 'bed', name: '펫 베드', position: [-2.6, 0, 0.8], rotationY: 0, color: '#FF7A59' },
+  { id: 'f-bowl-1', kind: 'bowl', name: '밥그릇 & 급수기', position: [1.5, 0, -2.6], rotationY: 0, color: '#38BDF8' },
+  { id: 'f-toy-1', kind: 'toy', name: '장난감 볼 세트', position: [2.1, 0, 1.4], rotationY: 0, color: '#A3E635' },
+  { id: 'f-plant-1', kind: 'plant', name: '실내 화분', position: [-3.4, 0, -2.9], rotationY: 0, color: '#2F9E62' },
+  { id: 'f-lamp-1', kind: 'lamp', name: '조명 스탠드', position: [3.3, 0, 0.6], rotationY: 0, color: '#FDE68A' },
+  { id: 'f-tower-1', kind: 'cattower', name: '원목 캣타워', position: [3.1, 0, -2.4], rotationY: 0, color: '#D6C5B3' }
+];
+
+export const AVATAR_SHIRT_COLORS = [
+  { name: '코랄 후드', hex: '#F43F5E' },
+  { name: '코발트 블루', hex: '#2563EB' },
+  { name: '민트 그린', hex: '#10B981' },
+  { name: '바이올렛', hex: '#7C3AED' },
+  { name: '차콜 블랙', hex: '#1E293B' },
+  { name: '크림 화이트', hex: '#F1F5F9' }
+];
 
 export const BREED_CATALOG: { id: PetBreed; name: string; emoji: string; defaultFur: string; desc: string }[] = [
   { id: 'shiba', name: '시바견', emoji: '🐕', defaultFur: '#E09F5A', desc: '쫑긋한 귀와 말린 꼬리가 매력적인 활기찬 파트너' },
