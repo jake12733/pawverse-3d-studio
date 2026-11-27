@@ -104,17 +104,17 @@ export const MyRoomWorld: React.FC = () => {
     return { map: oakTex.map, bumpMap: oakTex.bumpMap, bumpScale: 0.018, roughness: 0.34, metalness: 0.08 };
   }, [room.floorType, oakTex, marbleTex, terrazzoTex]);
 
-  // 1. Playable 3D Human Avatar + 3rd-person orbit camera
+  // 1. Playable 3D Human Avatar + 3rd-person orbit camera (centered nicely between side HUD drawers)
   const { playerPos, playerGroupRef, isWalking, wasClick } = useThirdPersonController({
-    initialPos: [-0.35, 0, 1.85],
+    initialPos: [-0.6, 0, 1.75],
     bounds: { minX: -3.7, maxX: 3.7, minZ: -3.2, maxZ: 3.2 },
     speed: 3.8,
-    initialDistance: 5.9,
+    initialDistance: 6.1,
     initialPitch: 0.42
   });
 
-  // 2. 3D Companion Pet with natural side separation so speech bubbles & nameplates never collide
-  const petPos = useRef(new THREE.Vector3(1.35, 0, 1.35));
+  // 2. 3D Companion Pet standing cleanly beside player inside the open center viewport
+  const petPos = useRef(new THREE.Vector3(0.75, 0, 1.45));
   const petRotY = useRef(-0.4);
   const petGroupRef = useRef<THREE.Group>(null);
   const roamTarget = useRef(new THREE.Vector3(1.1, 0, 0.7));
@@ -463,7 +463,7 @@ export const MyRoomWorld: React.FC = () => {
       ))}
 
       {/* Playable 3D Human Player Avatar */}
-      <group ref={playerGroupRef} position={[-0.35, 0, 1.85]}>
+      <group ref={playerGroupRef} position={[-0.6, 0, 1.75]}>
         <PlayerAvatar
           nickname={player.nickname}
           shirtColor={player.shirtColor}
@@ -476,7 +476,7 @@ export const MyRoomWorld: React.FC = () => {
       </group>
 
       {/* 3D Companion Pet following beside Player Avatar */}
-      <group ref={petGroupRef} position={[1.35, 0, 1.35]}>
+      <group ref={petGroupRef} position={[0.75, 0, 1.45]}>
         <ProceduralPet
           pet={pet}
           action={petMoving ? 'walk' : petAction}

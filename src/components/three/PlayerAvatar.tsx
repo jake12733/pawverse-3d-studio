@@ -136,29 +136,32 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
         )}
       </group>
 
-      {/* Overhead Nickname Pill — Lower layer (zIndexRange [10,0]), generous clearance from speech bubble */}
-      <Html position={[0, 2.22, 0]} center distanceFactor={10} zIndexRange={[10, 0]}>
-        <div
-          className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border backdrop-blur-md shadow pointer-events-none select-none ${
-            isLocalPlayer
-              ? 'bg-rose-500/92 text-white border-white/35'
-              : 'bg-slate-900/78 text-white border-white/20'
-          }`}
-        >
-          {isLocalPlayer ? '★ ' : '👤 '}
-          {nickname}
+      {/* Unified Overhead Stack: Speech Bubble cleanly stacked ABOVE Nameplate in CSS Flex — impossible to overlap! */}
+      <Html
+        position={[0, 2.08, 0]}
+        center
+        zIndexRange={speechText ? [29, 20] : [12, 0]}
+        style={{ pointerEvents: 'none', userSelect: 'none' }}
+      >
+        <div className="flex flex-col items-center gap-1.5 -translate-y-1/2">
+          {speechText && (
+            <div className="relative w-max max-w-[210px] px-3 py-1.5 rounded-2xl bg-white/95 text-slate-900 text-[12px] font-bold shadow-lg border border-slate-200 text-center leading-snug break-keep">
+              {speechText}
+              <span className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2.5 h-2.5 bg-white border-r border-b border-slate-200 rotate-45" />
+            </div>
+          )}
+          <div
+            className={`w-max px-2.5 py-0.5 rounded-full text-[11px] font-extrabold whitespace-nowrap border backdrop-blur-md shadow ${
+              isLocalPlayer
+                ? 'bg-rose-500/92 text-white border-white/35'
+                : 'bg-slate-900/80 text-white border-white/20'
+            }`}
+          >
+            {isLocalPlayer ? '★ ' : '👤 '}
+            {nickname}
+          </div>
         </div>
       </Html>
-
-      {/* Live Overhead Speech Bubble — Dedicated high Y offset (2.92) & top zIndexRange [29,20] so it NEVER collides with nameplates */}
-      {speechText && (
-        <Html position={[0, 2.92, 0]} center distanceFactor={10} zIndexRange={[29, 20]}>
-          <div className="relative px-3 py-1.5 rounded-2xl bg-white/96 text-slate-900 text-xs font-bold shadow-xl border border-slate-200 max-w-[210px] text-center leading-snug break-words pointer-events-none select-none">
-            {speechText}
-            <span className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-slate-200 rotate-45" />
-          </div>
-        </Html>
-      )}
     </group>
   );
 };

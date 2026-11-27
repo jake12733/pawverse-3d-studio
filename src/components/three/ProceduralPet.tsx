@@ -503,22 +503,27 @@ export const ProceduralPet: React.FC<ProceduralPetProps> = ({
       {/* Active Care/Reaction 3D Particles */}
       <PetParticles type={particles} />
 
-      {/* Pet Nickname Tag — Low height (1.32) & lower zIndexRange so it never overlaps human avatar labels */}
-      {nicknameTag && (
-        <Html position={[0, 1.32, 0]} center distanceFactor={9.5} zIndexRange={[8, 0]}>
-          <div className="px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[10.5px] font-bold whitespace-nowrap border border-white/25 backdrop-blur-md shadow pointer-events-none select-none">
-            {showHeartBadge ? '❤️ ' : '🐾 '}
-            {nicknameTag}
-          </div>
-        </Html>
-      )}
-
-      {/* Pet Floating Speech Bubble — Cleanly separated above pet nameplate with higher zIndexRange [24,15] & wrapping text */}
-      {speechText && (
-        <Html position={[0, nicknameTag ? 1.84 : 1.62, 0]} center distanceFactor={9.5} zIndexRange={[24, 15]}>
-          <div className="relative px-2.5 py-1.5 rounded-2xl bg-amber-50/96 text-slate-900 text-[11px] font-semibold shadow-xl border border-amber-200 max-w-[185px] text-center leading-snug break-words pointer-events-none select-none">
-            {speechText}
-            <span className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2.5 h-2.5 bg-amber-50 border-r border-b border-amber-200 rotate-45" />
+      {/* Unified Overhead Stack for Pet: Speech Bubble cleanly stacked ABOVE Pet Nameplate — zero overlap! */}
+      {(nicknameTag || speechText) && (
+        <Html
+          position={[0, 1.24, 0]}
+          center
+          zIndexRange={speechText ? [24, 15] : [8, 0]}
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          <div className="flex flex-col items-center gap-1.5 -translate-y-1/2">
+            {speechText && (
+              <div className="relative w-max max-w-[200px] px-2.5 py-1.5 rounded-2xl bg-amber-50/96 text-slate-900 text-[11.5px] font-semibold shadow-lg border border-amber-200 text-center leading-snug break-keep">
+                {speechText}
+                <span className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2.5 h-2.5 bg-amber-50 border-r border-b border-amber-200 rotate-45" />
+              </div>
+            )}
+            {nicknameTag && (
+              <div className="w-max px-2.5 py-0.5 rounded-full bg-slate-900/82 text-white text-[10.5px] font-bold whitespace-nowrap border border-white/25 backdrop-blur-md shadow">
+                {showHeartBadge ? '❤️ ' : '🐾 '}
+                {nicknameTag}
+              </div>
+            )}
           </div>
         </Html>
       )}

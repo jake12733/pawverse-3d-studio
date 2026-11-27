@@ -714,7 +714,7 @@ export const useMetaverseStore = create<MetaverseStore>((set, get) => ({
         }
         if (aiText) {
           defaultReply = aiText;
-          get().setSpeechBubble(aiText.slice(0, 60), 4200);
+          get().setSpeechBubble(Array.from(aiText).slice(0, 56).join(''), 4200);
         }
       } catch {
         // Fallback smoothly
@@ -727,9 +727,9 @@ export const useMetaverseStore = create<MetaverseStore>((set, get) => ({
     if (defaultReply || worldMode !== 'park') {
       const finalReply =
         defaultReply ||
-        `멍! "${text}" 얘기 듣고 꼬리가 살랑살랑~ 같이 걸을까? (애정도 ${stats.affection}%) 🐾`;
+        `멍! "${text}" 듣고 꼬리가 살랑살랑~ 같이 걸을까? 🐾`;
       if (!defaultReply) {
-        get().triggerPetAction('pet', finalReply.slice(0, 48), 'heart', 2400);
+        get().triggerPetAction('pet', Array.from(finalReply).slice(0, 44).join(''), 'heart', 2600);
       }
       const petMsg: ChatMessage = {
         id: `p-${Date.now()}`,
